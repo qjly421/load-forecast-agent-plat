@@ -1,7 +1,0 @@
-# Island local paths (gitignored). data_shandong symlinked at package root.
-load_path: data_shandong/load_sd.parquet
-weather_root: data_shandong
-weather_source: concat_all3
-cache_root: ./cache/merged_data
-result_root: ./results/formal_targetday_shandong
-archive_root: ./archive
