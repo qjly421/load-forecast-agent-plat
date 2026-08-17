@@ -106,4 +106,4 @@
 
 - **GitHub（本仓库）**：本文件即方法结晶；仓库 `https://github.com/qjly421/load-forecast-agent-plat`，路径 `docs/山东负荷预测EvoSOTA_R1-R5_有效方法总账.md`。
 - **服务器原始证据（逐轮逐迭代记分、最终报告、git 历史）**：TR2 主机 `/data1/liujunqi/ljq/evosota-ljq/`，其中 `committed_islands/round1-3`（R1-R3）、`islands/`（R4）、`islands-r5/`（R5），各岛 `.evosota/output/results/` 下有 scores.jsonl 与 final_report.md。
-- **图表**：发展脉络图与精度演化曲线见飞书同文附件或本机 artifacts（shandong_evosota_r1_r5_lineage.png / shandong_evosota_r1_r5_accuracy_curve.png）。
+- **图表**：发展脉络图与精度演化曲线已上传本仓库 figures/ 目录（shandong_evosota_r1_r5_lineage.png / .drawio / shandong_evosota_r1_r5_accuracy_curve.png）。
