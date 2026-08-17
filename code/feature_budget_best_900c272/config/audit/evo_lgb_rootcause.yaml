@@ -1,0 +1,269 @@
+version: 1
+program_id: shandong_stage1_lgb_rootcause_evo
+program_label: 山东 Stage1 LGB 根因挖掘与 Evo 证据化修正
+branch: evosota-shandong-backtest
+profile_id: formal_sep2025
+stage: stage1
+model_family: lgb
+line_defaults:
+  simplified_mainline_id: simplified_lgb_mainline
+  shanxi_control_line_id: shanxi_native_control
+  baseline_run_id: stage1_lgb_formal_sep2025
+
+baseline:
+  run_id: stage1_lgb_formal_sep2025
+  stage: stage1
+  model_family: lgb
+  strategy_id: direct_d14
+  result_dir: /Volumes/ljq-256g-mac/shandong_targetday_benchmark/stage1/lgb/formal_sep2025/formal/formal_sep2025_stage1_lgb_formal_lgb_dl4_20260605_2125
+  archive_dir: /Volumes/ljq-256g-mac/shandong_targetday_benchmark/stage1/lgb/formal_sep2025/formal/formal_sep2025_stage1_lgb_formal_lgb_dl4_20260605_2125
+  record_md_relpath: docs/evo_lgb/baseline_freeze_20260606.md
+  status: frozen
+
+reference_runs:
+  - run_id: stage1_nn_formal_sep2025
+    relation: upper_reference_same_protocol
+    result_dir: /Volumes/ljq-256g-mac/shandong_targetday_benchmark/stage1/nn/formal_sep2025/formal/formal_sep2025_stage1_nn_formal_nn_dl4_20260605_2050
+    record_md_relpath: docs/evo_lgb/compare_cmp-000-stage1-lgb-vs-stage1-nn-reference.md
+  - run_id: stage2_lgb_formal_sep2025
+    relation: non_stage1_upper_reference
+    result_dir: /Volumes/ljq-256g-mac/shandong_targetday_benchmark/stage2/lgb/formal_sep2025/formal/formal_sep2025_stage2_lgb_formal_stage2_lgb_tr2_20260605_2355
+    record_md_relpath: docs/evo_lgb/compare_cmp-001-stage1-lgb-vs-stage2-lgb-reference.md
+  - run_id: stage3_lgb_formal_sep2025
+    relation: non_stage1_shape_reference
+    result_dir: /Volumes/ljq-256g-mac/shandong_targetday_benchmark/stage3/lgb/formal_sep2025/formal/formal_sep2025_stage3_lgb_formal_stage3_lgb_tr2_20260605_2355
+    record_md_relpath: docs/evo_lgb/compare_cmp-002-stage1-lgb-vs-stage3-lgb-reference.md
+
+targeted_eval_sets:
+  - eval_id: eval_full_formal_sep2025
+    description: stage1 formal 主榜，唯一正式结论来源
+    source_files:
+      - formal_summary.yaml
+      - target_day_summary.csv
+      - horizon_summary.csv
+      - target_day_horizon_metrics.csv
+    primary_metric: overall_acc
+  - eval_id: eval_tail_d11_d14
+    description: 专门看长 horizon 尾部衰退
+    source_files:
+      - horizon_summary.csv
+    primary_metric: D11-D14_overall_acc
+  - eval_id: eval_head_d1_d5
+    description: 防止只修 tail 却伤短期
+    source_files:
+      - horizon_summary.csv
+    primary_metric: D1-D5_overall_acc
+  - eval_id: eval_harddays_sep0103
+    description: 专门盯 2025-09-01 到 2025-09-03 的困难样本
+    source_files:
+      - target_day_summary.csv
+      - target_day_horizon_metrics.csv
+    primary_metric: sep0103_overall_acc
+  - eval_id: eval_valid_formal_gap
+    description: 专门检查 valid_acc 与 formal overall_acc 的脱钩
+    source_files:
+      - run_index.csv
+      - formal_summary.yaml
+    primary_metric: valid_formal_gap
+
+issues:
+  - issue_id: lgb-rc-001-valid-gap
+    failure_family: validation_representativeness_gap
+    line_id: simplified_lgb_mainline
+    baseline_run_id: stage1_lgb_formal_sep2025
+    compare_to_run_id: null
+    targeted_eval_set:
+      - eval_valid_formal_gap
+      - eval_full_formal_sep2025
+      - eval_head_d1_d5
+      - eval_tail_d11_d14
+    acceptance_metric: formal overall_acc 上升且 valid_formal_gap 收敛，不能靠改 evaluator 或越界重训
+    code_paths:
+      - shandong_targetday_benchmark/tools/run_shandong_targetday_benchmark.py
+      - shandong_targetday_benchmark/models/lgb_targetday_model.py
+    status: rejected
+    record_md_relpath: docs/evo_lgb/issue_lgb-rc-001-valid-gap.md
+
+  - issue_id: lgb-rc-002-unused-rolling
+    failure_family: configured_but_unused_rolling_features
+    line_id: simplified_lgb_mainline
+    baseline_run_id: stage1_lgb_formal_sep2025
+    compare_to_run_id: null
+    targeted_eval_set:
+      - eval_tail_d11_d14
+      - eval_head_d1_d5
+      - eval_full_formal_sep2025
+    acceptance_metric: rolling/trend 特征落地后 formal overall_acc 或 D11-D14 有明确改善
+    code_paths:
+      - shandong_targetday_benchmark/models/lgb_targetday_model.py
+      - shandong_targetday_benchmark/config/model/lgb_targetday.yaml
+    status: confirmed
+    record_md_relpath: docs/evo_lgb/issue_lgb-rc-002-unused-rolling.md
+
+  - issue_id: lgb-rc-003-feature-completeness
+    failure_family: missing_interactions_and_regime_features
+    line_id: simplified_lgb_mainline
+    baseline_run_id: stage1_lgb_formal_sep2025
+    compare_to_run_id: null
+    targeted_eval_set:
+      - eval_full_formal_sep2025
+      - eval_head_d1_d5
+      - eval_tail_d11_d14
+      - eval_harddays_sep0103
+    acceptance_metric: 关键交互补齐后同时改善正式主榜与困难样本，不允许只靠参数调节伪提升
+    code_paths:
+      - shandong_targetday_benchmark/models/lgb_targetday_model.py
+      - shandong_targetday_benchmark/tools/data_adapter.py
+    status: confirmed
+    record_md_relpath: docs/evo_lgb/issue_lgb-rc-003-feature-completeness.md
+
+  - issue_id: lgb-rc-004-horizon-expression
+    failure_family: insufficient_single_model_horizon_expression
+    line_id: simplified_lgb_mainline
+    baseline_run_id: stage1_lgb_formal_sep2025
+    compare_to_run_id: null
+    targeted_eval_set:
+      - eval_tail_d11_d14
+      - eval_head_d1_d5
+      - eval_full_formal_sep2025
+    acceptance_metric: 不拆多模型的前提下，D1-D14 drop 缩小且 formal overall_acc 不回退
+    code_paths:
+      - shandong_targetday_benchmark/models/lgb_targetday_model.py
+    status: partial
+    record_md_relpath: docs/evo_lgb/issue_lgb-rc-004-horizon-expression.md
+
+  - issue_id: lgb-rc-005-hardday-monthstart
+    failure_family: monthstart_hardsample_brittleness
+    line_id: simplified_lgb_mainline
+    baseline_run_id: stage1_lgb_formal_sep2025
+    compare_to_run_id: null
+    targeted_eval_set:
+      - eval_harddays_sep0103
+      - eval_full_formal_sep2025
+      - eval_tail_d11_d14
+    acceptance_metric: 2025-09-01 及邻近日改善，同时不能牺牲主榜整体稳定性
+    code_paths:
+      - shandong_targetday_benchmark/models/lgb_targetday_model.py
+      - shandong_targetday_benchmark/tools/data_adapter.py
+    status: confirmed
+    record_md_relpath: docs/evo_lgb/issue_lgb-rc-005-hardday-monthstart.md
+
+cumulative_line:
+  line_id: simplified_lgb_cumulative
+  status: in_progress
+  locked_order:
+    - lgb-rc-001-valid-gap
+    - lgb-rc-002-unused-rolling
+    - lgb-rc-003-feature-completeness
+    - lgb-rc-004-horizon-expression
+    - lgb-rc-005-hardday-monthstart
+
+control_line:
+  line_id: shanxi_native_control
+  status: ready
+  stage1_compatible_items:
+    - lasso_style_feature_filtering
+    - weather_point_aggregation_or_grouping
+    - temperature_fix_style_features
+    - day_night_regime_features
+  control_only_items:
+    - normal_night_dual_model_ensemble
+    - recursive_future_load_feedback
+    - hierarchical_multi_model_structure
+  latest_control_compare_id: cmp-226-native-proxy-split-controls
+  latest_control_summary:
+    reference_shell_run_id: control_reference_shell_formal_dl4_20260607
+    weather_d1_only_run_id: control_weather_d1_only_formal_dl4_20260607
+    load_recent_only_run_id: control_load_recent_only_formal_dl4_20260607
+    native_proxy_run_id: control_native_proxy_formal_dl4_20260607
+    key_findings:
+      - native_proxy 的高分不能当 formal 证据
+      - shorter-lead weather 是旧 native_proxy 高分的主要来源
+      - future load reference 会继续抬分并压平 horizon 衰减
+      - current strict best 已可在 strict-safe 条件下达到 91.4633
+
+compare_records:
+  - compare_id: cmp-000-stage1-lgb-vs-stage1-nn-reference
+    status: ready
+    control_only: true
+    record_md_relpath: docs/evo_lgb/compare_cmp-000-stage1-lgb-vs-stage1-nn-reference.md
+  - compare_id: cmp-001-stage1-lgb-vs-stage2-lgb-reference
+    status: ready
+    control_only: true
+    record_md_relpath: docs/evo_lgb/compare_cmp-001-stage1-lgb-vs-stage2-lgb-reference.md
+  - compare_id: cmp-002-stage1-lgb-vs-stage3-lgb-reference
+    status: ready
+    control_only: true
+    record_md_relpath: docs/evo_lgb/compare_cmp-002-stage1-lgb-vs-stage3-lgb-reference.md
+  - compare_id: cmp-101-rc001-valid-gap-v2
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-101-rc001-valid-gap-v2.md
+  - compare_id: cmp-102-rc002-unused-rolling-v1
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-102-rc002-unused-rolling-v1.md
+  - compare_id: cmp-103-rc003-feature-completeness-v1
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-103-rc003-feature-completeness-v1.md
+  - compare_id: cmp-104-rc004-horizon-expression-v1
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-104-rc004-horizon-expression-v1.md
+  - compare_id: cmp-105-rc005-hardday-monthstart-v1
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-105-rc005-hardday-monthstart-v1.md
+  - compare_id: cmp-203-rc005-plus-feature-complete
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-203-rc005-plus-feature-complete.md
+  - compare_id: cmp-204-rc005-plus-dayplus-lag
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-204-rc005-plus-dayplus-lag.md
+  - compare_id: cmp-205-rc005-plus-weather-delta
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-205-rc005-plus-weather-delta.md
+  - compare_id: cmp-209-rc005-plus-dayplus-lag-weighted
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-209-rc005-plus-dayplus-lag-weighted.md
+  - compare_id: cmp-210-rc005-plus-dayplus-lag-strictfillcheck
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-210-rc005-plus-dayplus-lag-strictfillcheck.md
+  - compare_id: cmp-211-rc005-plus-dayplus-lag-hardtail-weighted
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-211-rc005-plus-dayplus-lag-hardtail-weighted.md
+  - compare_id: cmp-213-rc005-plus-dayplus-lag-tempgroup
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-213-rc005-plus-dayplus-lag-tempgroup.md
+  - compare_id: cmp-215-rc005-plus-dayplus-lag-tempgroup-nightrebalance
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-215-rc005-plus-dayplus-lag-tempgroup-nightrebalance.md
+  - compare_id: cmp-216-rc005-plus-dayplus-lag-tempgroup-hardwindow
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-216-rc005-plus-dayplus-lag-tempgroup-hardwindow.md
+  - compare_id: cmp-217-rc005-plus-dayplus-lag-tempgroup-hardtailwindow
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-217-rc005-plus-dayplus-lag-tempgroup-hardtailwindow.md
+  - compare_id: cmp-224-rc005-plus-dayplus-lag-tempfix
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-224-rc005-plus-dayplus-lag-tempfix.md
+  - compare_id: cmp-225-rc005-plus-dayplus-lag-tempfix-daily
+    status: ready
+    control_only: false
+    record_md_relpath: docs/evo_lgb/compare_cmp-225-rc005-plus-dayplus-lag-tempfix-daily.md
+  - compare_id: cmp-226-native-proxy-split-controls
+    status: ready
+    control_only: true
+    record_md_relpath: docs/evo_lgb/compare_cmp-226-native-proxy-split-controls.md

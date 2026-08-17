@@ -1,0 +1,141 @@
+model:
+  model_name: shandong_targetday_lgb
+  seed: 3407
+  n_estimators: 300
+  learning_rate: 0.05
+  num_leaves: 63
+  max_depth: -1
+  min_child_samples: 40
+  subsample: 0.9
+  colsample_bytree: 0.8
+  reg_alpha: 0.0
+  reg_lambda: 0.1
+  random_state: 3407
+  n_jobs: 8
+  seed_bag:
+    count: 5
+    horizon_blend:
+      - [1.0, 1.0, 1.0, 0.0, 0.0]   # D1: 3 seeds (partial averaging — variance reduction without over-diluting)
+      - [1.0, 1.0, 1.0, 0.0, 0.0]   # D2: 3 seeds
+      - [1.0, 1.0, 1.0, 1.0, 1.0]   # D3: all 5 uniformly (variance reduction)
+      - [1.0, 1.0, 1.0, 1.0, 1.0]   # D4: all 5 uniformly
+      - [1.0, 1.0, 1.0, 1.0, 1.0]   # D5: all 5 uniformly (preserve D5 gain)
+
+features:
+  lag_days: [1, 2, 3, 4, 5, 6, 7]
+  rolling_windows: [96, 672]
+  enable_monthstart_regime_features: true
+  enable_lag_regime_features: true
+  enable_dayplus_calendar_interactions: true
+  enable_dayplus_lag_interactions: true
+  enable_temperature_group_features: true
+  enable_temperature_fix_features: true
+  enable_temperature_fix_daily_summary: true
+  enable_temperature_fix_streak_adjust: false
+  enable_apparent_temp_hour_interaction: true
+  temperature_group_base_cols:
+    - apparent_temperature
+    - temperature_2m
+  temperature_fix_base_cols:
+    - apparent_temperature
+    - temperature_2m
+  temperature_fix_cold_threshold_c: 0.0
+  temperature_fix_hot_threshold_c: 30.0
+  temperature_fix_cold_ref_c: 3.0
+  temperature_fix_hot_ref_c: 27.0
+  temperature_fix_decay: 0.6
+  temperature_fix_lookback_days: 14
+  # IDEA-027 (iter 4): HDD/CDD threshold encoding (+4 cols) paid for by dropping 4
+  # load-stat duplicates (min/max of the 7 raw lags the row already carries, their
+  # range, and the d1-d7 same-slot delta). t2m group std/min/max RESTORED (iter-3
+  # showed their removal hurt midday D1/D2). Net 0 vs baseline budget (300).
+  enable_hddcdd_features: true
+  temperature_hddcdd_base_c: 14.0
+  hddcdd_include_gap: false
+  # IDEA-028 (iter 5): +4 slot-resolved PV-regime shape features (robust, cached,
+  # level-invariant), paid with 4 safe duplicates. Net 0 (300).
+  enable_shape_dynamics_features: true
+  # IDEA-029 (iter 6): +2 NWP cross-member t2m spread features (forecast-error
+  # covariate), paid with 2 calendar duplicates. Net 0 (300).
+  enable_nwp_spread_features: true
+  drop_feature_names: [lag_min, lag_max, lag_range, lag_last_delta, lag_cv, dayplus_x_month, origin_month, quarter, dayplus_x_dow, is_weekend]
+  weather_base_cols:
+    - apparent_temperature
+    - temperature_2m
+    - cloud_cover
+    - precipitation
+    - shortwave_radiation
+    - direct_radiation
+    - diffuse_radiation
+    - direct_normal_irradiance_instant
+    - wind_speed_10m
+    - wind_direction_10m
+
+  # VAE-inferred future-DPV feature (Round-4 VAE island). OFF by default — enabling
+  # crops the train/valid origin pool to validation.train_origin_start (strict join).
+  enable_future_dpv: false
+  future_dpv_path: "/data1/liujunqi/ljq/evosota-ljq/data_shandong/vae_dpv/frozen_v6_full_20250101_20260731_d1d5.parquet"
+  future_dpv_value_col: "dpv_pred_mw"
+  future_dpv_hourly_expansion: "repeat_4"
+
+validation:
+  # Active when enable_future_dpv=true, or when force_train_origin_start=true below.
+  # Value = first origin_day carrying a COMPLETE D1-D5 x 24h block in the VAE parquet.
+  #
+  # frozen_v6_full_20250101_20260731_d1d5.parquet (measured 2026-08-14 with tr2's own
+  # FutureDPVFeatureStore): target_day 2025-01-01..2026-07-31, origin_day
+  # 2024-12-27..2026-07-30, 573 complete D1-D5 origins spanning 2024-12-31..2026-07-26.
+  # Supersedes frozen_v6_aug2025_jun2026_d1d5 (330 complete origins from 2025-07-31).
+  # The new file is a VERIFIED STRICT SUPERSET of the old one: 100% strict-key match,
+  # max |delta dpv_pred_mw| = 0.0059 MW (float32 GPU nondeterminism), identical
+  # checkpoint sha256 92609e40..., zero provenance-column mismatches.
+  #
+  # Train-origin pool recovered (complete D1-D5 origins vs full load_sd history):
+  #   medium formal_jun2026_d1d5 : 305 -> 517  (cut 65% -> 41%)
+  #   full   sep2025 (worst)     :  32 -> 244  (cut 95% -> 60%)
+  #
+  # CAVEAT: 2025-01-01..2025-07-31 is the VAE's own train/val window, so the DPV feature
+  # is sharper there than at evaluation time (in-sample MAE 1006 MW vs causal-OOS 1483 MW
+  # at dayplus=1). Weigh this when interpreting any gain. 2024-01-01 is unreachable: the
+  # upstream meteohubx ecmwf_ifs025 12z archive begins ~2024-12-14 (probe-verified).
+  train_origin_start: "2024-12-31"
+  # Apply train_origin_start even when enable_future_dpv=false. Needed ONLY for the
+  # charter's paired control arm (DPV off + same training window). Default false keeps
+  # behavior bit-identical for every island that does not opt in.
+  force_train_origin_start: false
+sample_weight:
+  enabled: true
+  hour_rules:
+    - start_hour: 10
+      end_hour: 16
+      weight: 2.5
+    - start_hour: 18
+      end_hour: 23
+      weight: 1.0
+    - start_hour: 0
+      end_hour: 10
+      weight: 0.8
+    - start_hour: 16
+      end_hour: 18
+      weight: 0.8
+  horizon_bucket_weights:
+    head: 1.0
+    mid: 1.0
+    tail: 1.15
+
+calibration:
+  enabled: true
+  min_samples: 50
+  shrinkage: 1.0
+  scored_only: true
+  # IDEA-039 (iter 15): long-horizon bias estimates are noisier (shrinking valid
+  # pool); pull them toward zero progressively with dayplus.
+  shrinkage_by_dayplus:
+    1: 1.0
+    2: 1.0
+    3: 0.9
+    4: 0.85
+    5: 0.8
+  shrinkage_by_hour_bin:
+    2: 1.0
+    4: 1.5

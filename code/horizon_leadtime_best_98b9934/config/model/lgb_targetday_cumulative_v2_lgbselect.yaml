@@ -1,0 +1,49 @@
+model:
+  model_name: shandong_targetday_lgb
+  seed: 3407
+  n_estimators: 300
+  learning_rate: 0.05
+  num_leaves: 63
+  max_depth: -1
+  min_child_samples: 40
+  subsample: 0.9
+  colsample_bytree: 0.8
+  reg_alpha: 0.0
+  reg_lambda: 0.1
+  random_state: 3407
+  n_jobs: 8
+
+features:
+  lag_days: [1, 2, 3, 4, 5, 6, 7]
+  rolling_windows: [96, 672]
+  enable_rolling_stats: true
+  enable_dayplus_calendar_interactions: true
+  enable_dayplus_lag_interactions: true
+  enable_weather_delta_features: true
+  enable_horizon_bucket_features: true
+  enable_monthstart_regime_features: true
+  enable_lag_regime_features: true
+  weather_base_cols:
+    - apparent_temperature
+    - temperature_2m
+    - cloud_cover
+    - precipitation
+    - shortwave_radiation
+    - direct_radiation
+    - diffuse_radiation
+    - direct_normal_irradiance_instant
+    - wind_speed_10m
+    - wind_direction_10m
+
+feature_selection:
+  enabled: true
+  method: lgb_importance
+  top_k: 192
+  sample_rows: 120000
+  n_estimators: 80
+  protect_prefixes:
+    - dayplus
+    - lag_load_d
+    - gap_load_same_slot
+    - gap_w_
+    - fut_w_
