@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron" modified="2026-08-17T07:40:11.492Z" version="30.3.6">
+  <diagram id="page-1" name="R1-R5 lineage">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1300" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="__figure_title__" value="山东负荷预测自动优化（EvoSOTA）R1→R5 发展脉络（分数为 medium 口径准确率 %）" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;html=1;fontSize=22;fontStyle=1;fontColor=#111827;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1820" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="note_caliber" value="注：R4 起换用更强的天气数据（三源拼接），考卷变难，分数基线整体下移约 0.2——跨 R3/R4 的绝对分数不直接可比，脉络看方法。" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;html=1;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="R1 起点&#xa;基线 96.23&#xa;（原始模型直接预测）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#1f2937;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="300" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="R2 冠军线（当时最高）&#xa;96.67&#xa;删掉 6 个帮倒忙的温度衍生特征&#xa;＋ 换成和考试口径一致的训练目标" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="60" y="300" width="300" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="R3 冠军（后来被选为正统）&#xa;96.62&#xa;① 给温度特征加物理规律约束&#xa;② 节假日、度日数等新特征&#xa;③ 分时段/分天数精细校准&#xa;④ 收紧正则化防止死记硬背" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="60" y="500" width="300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="r3_note" value="R3 另一岛曾冲到 96.70，但换月考试掉到 93.0——被判为只会做当月题，淘汰" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;html=1;fontColor=#cc0000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="655" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="R4 冠军续航岛&#xa;medium 96.65 ／ full 94.94（新高）&#xa;核心方法：校准「部分池化」&#xa;——某天数据少时，校正量向同&#xa;时段平均值借力，预测越远借力越多" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="480" y="500" width="320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_holiday" value="R4 节假日岛 → medium 96.31&#xa;发现：节假日工厂停工影响巨大，&#xa;且用「抽样训练多个模型再平均」&#xa;比用一个全量模型更稳" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="480" y="720" width="320" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_leadtime" value="R4 提前期岛 → medium 96.39 ／ full 94.38&#xa;发现：按天的稳健校准（先算每天的&#xa;平均偏差再取中位数）＋ 10 个模型&#xa;平均 ＋ 行抽样，三件套" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="480" y="890" width="320" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_other" value="R4 另外两岛（VAE数据岛、探索岛）&#xa;未超冠军线，但其经验（哪些没用）&#xa;为 R5 提供负证据" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#1f2937;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1060" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="r5_champ" value="R5 冠军续航岛&#xa;medium 96.69 ／ full 95.15 ★历史最高★&#xa;方法：继续微调校准力度——&#xa;第1天数据新鲜，校正可以更激进" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="920" y="430" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="r5_holiday" value="R5 合并岛（提前期+节假日）★medium 最高★&#xa;medium 96.70 ／ full 94.82&#xa;把节假日规律吃透：&#xa;① 大假/小长假分开处理（停工幅度差3-10倍）&#xa;② 只在非白天时段生效（白天被光伏盖住）&#xa;③ 假期有「渐停→最深→提前复工」的爬坡过程&#xa;④ 复工后 1-3 天用电会冲高" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="920" y="640" width="340" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="r5_vae" value="R5 VAE 数据岛 → full 93.48（+0.10）&#xa;结论：光伏预测数据当「输入特征」没用，&#xa;真正涨分的全是校准工艺（分时段用不同&#xa;校正方式）——两轮验证同一结论" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#1f2937;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="870" width="340" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="r5_wild" value="R5 两个探索岛 → full 93.67 / 93.58&#xa;均超过 R4 探索岛（92.73），&#xa;但离冠军线还有距离" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#1f2937;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1040" width="340" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="图例与总账&#xa;&#xa;■ 黄：早期冠军线    ■ 绿：冠军续航主线&#xa;■ 蓝：R4 分支岛    ■ 橙：R5 集大成合并岛&#xa;■ 灰：未胜出但有价值的岛&#xa;&#xa;总账（medium 准确率）：&#xa;起点 96.23 → R2 96.67 → R3 96.62（更抗换月）&#xa;→ R4 96.65 → R5 96.70（累计 +0.47）&#xa;&#xa;总账（full 跨月考试）：&#xa;R3 94.79 → R4 94.94 → R5 95.15（累计 +0.36）&#xa;&#xa;一句话：涨分靠三件事——&#xa;① 把节假日规律建模到位（最大功臣）&#xa;② 校准越来越精细（分时段、分天数、会借力）&#xa;③ 物理规律约束 + 防过拟合" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="130" width="480" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="baseline_ref" value="各轮最强单步方法（人话版）&#xa;&#xa;R1：删掉没用的风向特征 +96.23→96.51&#xa;R2：删掉帮倒忙的温度特征 →96.67&#xa;R3：温度加物理约束+精细校准 →96.62&#xa;R4：校准借力（部分池化）full +0.15&#xa;R5：节假日爬坡/复工建模 →96.70&#xa;&#xa;失败的尝试同样有价值：换训练目标、&#xa;加模型复杂度、光伏数据直喂——&#xa;全部无效或倒退，说明这个模型已经&#xa;「吃透」了数据，只剩规律性知识能挖" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;html=1;fontColor=#1f2937;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="450" width="480" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="r1" target="r2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="R2 冠军换月考试不合格&#xa;（full 92.6），R3 另起炉灶" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="r2" target="r3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="R3 冠军被选为 R4 种子&#xa;（换天气数据后重测 96.64）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="r3" target="r4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="冠军续航" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="r4" target="r5_champ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="节假日机制" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="r4_holiday" target="r5_holiday">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="提前期机制" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;" edge="1" parent="1" source="r4_leadtime" target="r5_holiday">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="860" y="929" />
+              <mxPoint x="860" y="742" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="medium 最高 vs full 最高&#xa;（两条线各有千秋）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;" edge="1" parent="1" source="r5_holiday" target="r5_champ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="VAE/探索线延续" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="r4_other" target="r5_vae">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
